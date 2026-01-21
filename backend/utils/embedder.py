@@ -3,51 +3,41 @@ import pickle
 import faiss
 from sentence_transformers import SentenceTransformer
 
-# Directory to store embeddings
 EMBEDDING_DIR = "data/embeddings"
 os.makedirs(EMBEDDING_DIR, exist_ok=True)
 
-# Load embedding model once
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# 🔴 DO NOT LOAD MODEL AT IMPORT TIME
+_model = None
+
+def get_model():
+    global _model
+    if _model is None:
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _model
 
 
-# -----------------------------
-# Helper: Chunk text
-# -----------------------------
-def chunk_text(text: str, chunk_size: int = 400):
+def chunk_text(text, chunk_size=400):
     words = text.split()
     chunks = []
-
     for i in range(0, len(words), chunk_size):
         chunks.append(" ".join(words[i:i + chunk_size]))
-
     return chunks
 
 
-# -----------------------------
-# Helper: Deduplicate chunks
-# -----------------------------
 def deduplicate(chunks):
     seen = set()
     unique = []
-
     for c in chunks:
         key = c.strip().lower()
         if key not in seen:
             seen.add(key)
             unique.append(c)
-
     return unique
 
 
-# -----------------------------
-# Create embeddings
-# -----------------------------
 def create_embeddings(text: str, doc_name: str):
-    chunks = chunk_text(text)
-
-    if not chunks:
-        return
+    chunks = deduplicate(chunk_text(text))
+    model = get_model()
 
     embeddings = model.encode(chunks)
 
@@ -60,16 +50,14 @@ def create_embeddings(text: str, doc_name: str):
         pickle.dump(chunks, f)
 
 
-# -----------------------------
-# Search embeddings
-# -----------------------------
-def search_embeddings(query: str, doc_name: str, top_k: int = 5):
+def search_embeddings(query: str, doc_name: str, top_k=5):
     index_path = f"{EMBEDDING_DIR}/{doc_name}.index"
     chunk_path = f"{EMBEDDING_DIR}/{doc_name}_chunks.pkl"
 
-    if not os.path.exists(index_path) or not os.path.exists(chunk_path):
+    if not os.path.exists(index_path):
         return []
 
+    model = get_model()
     index = faiss.read_index(index_path)
 
     with open(chunk_path, "rb") as f:
@@ -78,18 +66,4 @@ def search_embeddings(query: str, doc_name: str, top_k: int = 5):
     query_embedding = model.encode([query])
     _, indices = index.search(query_embedding, top_k)
 
-    retrieved = [chunks[i] for i in indices[0]]
-
-    # 🔥 HARD FILTER FOR PROJECT QUESTIONS
-    if "project" in query.lower():
-        retrieved = [
-            c for c in retrieved
-            if any(word in c.lower() for word in [
-                "project", "developed", "system", "classification", "model"
-            ])
-        ]
-
-    # ✅ Deduplicate + limit output
-    retrieved = deduplicate(retrieved)
-
-    return retrieved[:5]
+    return [chunks[i] for i in indices[0]]
