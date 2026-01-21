@@ -37,3 +37,9 @@ Answer (short, bullet points if possible):
     result = qa_pipeline(prompt)
 
     return result[0]["generated_text"].strip()
+def generate_answer(question, context_chunks):
+    if not context_chunks:
+        return "Answer not found in the document."
+
+    # Simple extractive answer (Render-safe)
+    return "\n".join(context_chunks[:3])
