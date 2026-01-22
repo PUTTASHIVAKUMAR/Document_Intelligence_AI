@@ -4,7 +4,8 @@ python-multipart
 pytesseract
 pillow
 PyPDF2
+PyMuPDF
 sentence-transformers
-numpy
 faiss-cpu
-torch
+numpy
+scikit-learn

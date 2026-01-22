@@ -1,27 +1,12 @@
-from PIL import Image
-import pytesseract
-from PyPDF2 import PdfReader
-import os
+import fitz  # PyMuPDF
+import io
 
-def extract_text(file_path: str) -> str:
+def extract_text(pdf_bytes: bytes) -> str:
     text = ""
+    pdf_stream = io.BytesIO(pdf_bytes)
+    doc = fitz.open(stream=pdf_stream, filetype="pdf")
 
-    # PDF handling
-    if file_path.lower().endswith(".pdf"):
-        try:
-            reader = PdfReader(file_path)
-            for page in reader.pages:
-                if page.extract_text():
-                    text += page.extract_text() + "\n"
-        except Exception:
-            text = ""
+    for page in doc:
+        text += page.get_text()
 
-    # Image handling (OCR)
-    else:
-        try:
-            image = Image.open(file_path)
-            text = pytesseract.image_to_string(image)
-        except Exception:
-            text = ""
-
-    return text.strip()
+    return text
