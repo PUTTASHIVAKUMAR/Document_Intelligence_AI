@@ -34,7 +34,24 @@ if uploaded_file:
     document = uploaded_file.name.rsplit(".", 1)[0]
     st.text_input("Document name (auto-filled)", value=document, disabled=True)
 
-if st.button("Ask"):
+st.header("Ask a Question")
+
+question = st.text_input(
+    "Enter your question",
+    key="question_input"
+)
+
+document = None
+if uploaded_file:
+    document = uploaded_file.name.rsplit(".", 1)[0]
+    st.text_input(
+        "Document name (auto-filled)",
+        value=document,
+        disabled=True,
+        key="doc_name_display"
+    )
+
+if st.button("Ask", key="ask_button"):
     if question and document:
         params = {
             "question": question,
@@ -44,6 +61,7 @@ if st.button("Ask"):
 
         if response.status_code == 200:
             data = response.json()
+
             st.subheader("Answer")
             st.write(data["answer"])
 
@@ -54,3 +72,4 @@ if st.button("Ask"):
             st.error("Backend error while answering")
     else:
         st.warning("Upload document and enter a question")
+
