@@ -26,6 +26,13 @@ if uploaded_file:
 st.header("Ask a Question")
 question = st.text_input("Enter your question")
 document = st.text_input("Document name (without extension)")
+st.header("Ask a Question")
+question = st.text_input("Enter your question")
+
+document = None
+if uploaded_file:
+    document = uploaded_file.name.rsplit(".", 1)[0]
+    st.text_input("Document name (auto-filled)", value=document, disabled=True)
 
 if st.button("Ask"):
     if question and document:
@@ -43,5 +50,7 @@ if st.button("Ask"):
             st.subheader("Source Text")
             for chunk in data["sources"]:
                 st.markdown(f"> {chunk}")
+        else:
+            st.error("Backend error while answering")
     else:
-        st.warning("Enter both question and document name")
+        st.warning("Upload document and enter a question")
