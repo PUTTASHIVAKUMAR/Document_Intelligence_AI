@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 EMBEDDING_DIR = "data/embeddings"
 os.makedirs(EMBEDDING_DIR, exist_ok=True)
 
-# 🔴 DO NOT LOAD MODEL AT IMPORT TIME
+# Lazy model load
 _model = None
 
 def get_model():
