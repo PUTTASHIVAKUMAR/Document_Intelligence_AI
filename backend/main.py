@@ -1,9 +1,8 @@
 from fastapi import FastAPI, UploadFile, File
 import os
-
-from backend.utils.pdf_reader import extract_text
-from backend.utils.embedder import create_embeddings, search_embeddings
-from backend.utils.llm_answer import generate_answer
+from utils.pdf_reader import extract_text
+from utils.embedder import create_embeddings, search_embeddings
+from utils.llm_answer import generate_answer
 
 app = FastAPI(title="Document Intelligence AI")
 
