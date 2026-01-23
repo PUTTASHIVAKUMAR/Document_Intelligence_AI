@@ -1,3 +1,4 @@
+
 import fitz  # PyMuPDF
 
 def extract_text(file_path: str):
@@ -5,7 +6,7 @@ def extract_text(file_path: str):
     chunks = []
 
     for page in doc:
-        text = page.get_text().strip()
+        text = page.get_text("text").strip()
         if text:
             chunks.append(text)
 

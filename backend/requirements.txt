@@ -1,11 +1,7 @@
 fastapi
 uvicorn
 python-multipart
-pillow
-pdfplumber
-pytesseract
-opencv-python
-numpy
 sentence-transformers
 scikit-learn
+numpy
 PyMuPDF

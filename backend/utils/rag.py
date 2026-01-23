@@ -9,10 +9,7 @@ def get_model():
         _model = SentenceTransformer("all-MiniLM-L6-v2")
     return _model
 
-def query_index(question: str, embeddings, chunks, top_k=3):
-    """
-    Semantic search + simple RAG answer
-    """
+def query_index(question, embeddings, chunks, top_k=3):
     if len(embeddings) == 0:
         return "No data available", []
 
@@ -23,8 +20,6 @@ def query_index(question: str, embeddings, chunks, top_k=3):
     top_idx = sims.argsort()[-top_k:][::-1]
 
     top_chunks = [chunks[i] for i in top_idx]
-
-    # Simple answer synthesis
     answer = " ".join(top_chunks[:2])
 
-    return answer, top_chunks
+    return answer, top error_chunks
