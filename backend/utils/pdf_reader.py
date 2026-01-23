@@ -1,12 +1,12 @@
 import fitz  # PyMuPDF
-import io
 
-def extract_text(pdf_bytes: bytes) -> str:
-    text = ""
-    pdf_stream = io.BytesIO(pdf_bytes)
-    doc = fitz.open(stream=pdf_stream, filetype="pdf")
+def extract_text(file_path: str):
+    doc = fitz.open(file_path)
+    chunks = []
 
     for page in doc:
-        text += page.get_text()
+        text = page.get_text().strip()
+        if text:
+            chunks.append(text)
 
-    return text
+    return chunks
