@@ -20,6 +20,7 @@ def query_index(question, embeddings, chunks, top_k=3):
     top_idx = sims.argsort()[-top_k:][::-1]
 
     top_chunks = [chunks[i] for i in top_idx]
+
     answer = " ".join(top_chunks[:2])
 
-    return answer, top error_chunks
+    return answer, top_chunks
