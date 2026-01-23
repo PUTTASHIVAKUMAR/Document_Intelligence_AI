@@ -1,11 +1,11 @@
 fastapi
 uvicorn
 python-multipart
-pytesseract
 pillow
-PyPDF2
-PyMuPDF
-sentence-transformers
-faiss-cpu
+pdfplumber
+pytesseract
+opencv-python
 numpy
+sentence-transformers
 scikit-learn
+PyMuPDF
