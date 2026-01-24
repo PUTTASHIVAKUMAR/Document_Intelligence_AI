@@ -1,11 +1,10 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 import os
-import traceback
+import fitz  # PyMuPDF
 
-from utils.pdf_reader import extract_text
-from utils.embedder import build_index
-from utils.rag import query_index
+from embeddings import create_embeddings
+from rag import query_index
 
 app = FastAPI()
 
@@ -17,72 +16,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-os.makedirs(DATA_DIR, exist_ok=True)
-
-documents_store = {}
-embeddings_store = {}
+UPLOAD_DIR = "data/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
-    try:
-        file_path = os.path.join(DATA_DIR, file.filename)
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
 
-        with open(file_path, "wb") as f:
-            f.write(await file.read())
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
 
-        # Extract text
-        text_chunks = extract_text(file_path)
+    # Extract text using PyMuPDF
+    text = ""
+    doc = fitz.open(file_path)
+    for page in doc:
+        text += page.get_text()
 
-        if not text_chunks or len(text_chunks) == 0:
-            return {"status": "error", "message": "No text extracted from document"}
+    doc_name = file.filename.rsplit(".", 1)[0]
+    create_embeddings(text, doc_name)
 
-        # Build embeddings
-        embeddings = build_index(text_chunks)
-
-        doc_name = file.filename.rsplit(".", 1)[0]
-
-        documents_store[doc_name] = text_chunks
-        embeddings_store[doc_name] = embeddings
-
-        return {
-            "status": "success",
-            "document": doc_name,
-            "chunks": len(text_chunks)
-        }
-
-    except Exception as e:
-        print("UPLOAD ERROR:", str(e))
-        print(traceback.format_exc())
-        return {
-            "status": "error",
-            "message": str(e),
-            "trace": traceback.format_exc()
-        }
+    return {"status": "success", "document": doc_name}
 
 @app.get("/ask")
 def ask(question: str, document: str):
-    try:
-        if document not in embeddings_store:
-            return {"status": "error", "message": "Document not found"}
-
-        chunks = documents_store[document]
-        embeddings = embeddings_store[document]
-
-        answer, sources = query_index(question, embeddings, chunks)
-
-        return {
-            "status": "success",
-            "answer": answer,
-            "sources": sources
-        }
-
-    except Exception as e:
-        print("ASK ERROR:", str(e))
-        print(traceback.format_exc())
-        return {
-            "status": "error",
-            "message": str(e),
-            "trace": traceback.format_exc()
-        }
+    answer, sources = query_index(question, document)
+    return {
+        "answer": answer,
+        "sources": sources
+    }

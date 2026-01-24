@@ -1,7 +1,12 @@
 fastapi
 uvicorn
 python-multipart
-sentence-transformers
-scikit-learn
-numpy
+pytesseract
+pillow
+pdf2image
 PyMuPDF
+sentence-transformers
+faiss-cpu
+transformers
+torch
+numpy
